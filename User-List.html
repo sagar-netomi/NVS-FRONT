@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User List</title>
+    <style>
+        /* Add your styling here */
+        .pagination {
+            display: flex;
+            list-style: none;
+            padding: 0;
+        }
+
+        .toggle-qr-button{
+            background-color: rgb(238, 237, 196);
+            border-radius: 9px;
+            margin-top: 3px;
+        }
+
+        .pagination li {
+            margin: 0 5px;
+            cursor: pointer;
+            border: 2px solid black; /* Add black border */
+            border-radius: 50%; /* Make it a circle */
+            padding: 5px;
+        }
+
+        #searchBtn{
+           background-color: rgb(245, 237, 227);
+           border-radius: 50px;
+           padding: 8px;
+           margin: 5px;
+        }
+
+ 
+    </style>
+
+<script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+
+</head>
+<body>
+    <script src="/config.js"></script>
+    <button onclick="redirectToPage('Homepage.html')">Homepage</button>
+
+    <h1>User List</h1>
+
+    <!-- User Search Input Fields -->
+    <label for="userSearchKeyword">User Search Keyword:</label>
+    <input type="text" id="userSearchKeyword">
+
+    <!-- Mandal Name Dropdown -->
+    <label for="mandalName">Mandal Name:</label>
+    <select id="mandalNameDropdown"></select>
+
+    <!-- Search Button -->
+    <button id="searchBtn" onclick="searchUserList()">Search</button>
+
+    <!-- Display User List -->
+    <ul id="userList"></ul>
+
+    <!-- Pagination -->
+    <ul class="pagination" id="pagination"></ul>
+
+    <p id="paginationMessage"></p>
+
+    <script>
+
+function redirectToPage(page) {
+            window.location.href = page;
+        }
+
+        // Function to fetch Mandal names from the API and populate the dropdown
+        function fetchMandalNames() {
+
+            let options={
+                method:"GET",
+                mode: "cors", // no-cors, *cors, same-origin
+                cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+                credentials: "same-origin", // include, *same-origin, omit
+                headers: {
+                "Content-Type": "application/json",
+                }
+            }
+
+            fetch(`${config.apiHost}/mandal/list?page=1&recordSize=100`,options)
+                .then(response => response.json())
+                .then(data => {
+                    const mandalDropdown = document.getElementById('mandalNameDropdown');
+
+                    // Add an option for 'All' mandals with an empty value
+                    const allOption = document.createElement('option');
+                    allOption.value = '';
+                    allOption.textContent = 'All';
+                    mandalDropdown.appendChild(allOption);
+
+                    // Add options for each Mandal name
+                    data.data.resultsList.forEach(mandal => {
+                        const option = document.createElement('option');
+                        option.value = mandal.name;
+                        option.textContent = mandal.name;
+                        mandalDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Function to fetch user list from the API
+        function fetchUserList(page = 1) {
+            // Get values from the input fields
+            const userSearchKeyword = document.getElementById('userSearchKeyword').value ;
+            const mandalName = document.getElementById('mandalNameDropdown').value ;
+            const recordSize = 20;
+
+            // Make the API call
+            fetch(`${config.apiHost}/user/list?page=${page}&recordSize=${recordSize}&userSearchKeyword=${userSearchKeyword}&mandalName=${mandalName}`)
+                .then(response => response.json())
+                .then(data => displayUserList(data.data.resultsList, data.data.currentRecordsCount, data.data.totalRecords))
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Function to search user list based on input fields
+        function searchUserList() {
+            fetchUserList(1);
+        }
+
+        // Function to display the user list and pagination in the HTML
+        function displayUserList(userList, currentRecordsCount, totalRecords) {
+            const listContainer = document.getElementById('userList');
+            listContainer.innerHTML = ''; // Clear previous content
+
+            userList.forEach(user => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <strong>Name:</strong> ${user.name}<br>
+                    <strong>UUID:</strong> ${user.uuid}<br>
+                    <strong>DOB:</strong> ${user.dob==null?'':user.dob}<br>
+                    <strong>Email:</strong> ${user.email}<br>
+                    <strong>Phone No:</strong> ${user.phoneNo}<br>
+                    <strong>Mandal Name:</strong> ${user.mandalDetails.name}<br>
+                    <button class="toggle-qr-button" data-uuid="${user.uuid}">Show QR</button><br>
+                    <img class="qr-code" id="qrCode${user.uuid}" src="" alt="QR Code" style="display: none;"><br> <!-- Initially hide QR code -->
+                    <hr>
+                `;
+                listContainer.appendChild(listItem);
+
+               // Set the base64-encoded QR code as the source of the img tag
+                document.getElementById(`qrCode${user.uuid}`).src = `data:image/png;base64,${user.qrcode}`;
+
+            });
+
+            // Display pagination
+            const paginationContainer = document.getElementById('pagination');
+            paginationContainer.innerHTML = '';
+            for (let i = 1; i <= Math.ceil(totalRecords / currentRecordsCount); i++) {
+                const li = document.createElement('li');
+                li.textContent = i;
+                li.addEventListener('click', () => fetchUserList(i));
+                paginationContainer.appendChild(li);
+            }
+
+            // Display pagination message
+            const paginationMessage = document.getElementById('paginationMessage');
+            paginationMessage.textContent = `Showing ${currentRecordsCount} of ${totalRecords} results`;
+
+                                // Add event listeners for the "Show QR" buttons
+                    document.querySelectorAll('.toggle-qr-button').forEach(button => {
+                        button.addEventListener('click', () => toggleQRCode(button.dataset.uuid));
+                    });
+        }
+
+        // Function to toggle the visibility of the QR code
+            function toggleQRCode(uuid) {
+                const qrCodeImage = document.getElementById(`qrCode${uuid}`);
+                qrCodeImage.style.display = qrCodeImage.style.display === 'none' ? 'block' : 'none';
+            }
+
+            // Function to generate QR code and display it in the specified container
+                    function generateQRCode(data, containerId) {
+                        const qrCodeContainer = document.getElementById(containerId);
+                        const qr = new QRCode(qrCodeContainer, {
+                            text: data,
+                            width: 128,
+                            height: 128,
+                        });
+                    }
+
+        // Initial setup: Fetch Mandal names and populate the dropdown
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMandalNames();
+            fetchUserList();
+        });
+    </script>
+</body>
+</html>
