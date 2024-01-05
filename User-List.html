@@ -83,7 +83,7 @@ function redirectToPage(page) {
                 }
             }
 
-            fetch(`${config.apiHost}/mandal/list?page=1&recordSize=100`,options)
+            fetch(`https://ec2-43-205-243-43.ap-south-1.compute.amazonaws.com:9001/api/mandal/list?page=1&recordSize=100`,options)
                 .then(response => response.json())
                 .then(data => {
                     const mandalDropdown = document.getElementById('mandalNameDropdown');
