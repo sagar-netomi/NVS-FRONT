@@ -113,7 +113,7 @@ function redirectToPage(page) {
             const recordSize = 20;
 
             // Make the API call
-            fetch(`${config.apiHost}/user/list?page=${page}&recordSize=${recordSize}&userSearchKeyword=${userSearchKeyword}&mandalName=${mandalName}`)
+            fetch(`https://ec2-43-205-243-43.ap-south-1.compute.amazonaws.com:9001/api/user/list?page=${page}&recordSize=${recordSize}&userSearchKeyword=${userSearchKeyword}&mandalName=${mandalName}`)
                 .then(response => response.json())
                 .then(data => displayUserList(data.data.resultsList, data.data.currentRecordsCount, data.data.totalRecords))
                 .catch(error => console.error('Error:', error));
