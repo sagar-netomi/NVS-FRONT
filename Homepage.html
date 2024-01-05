@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+</head>
+
+<style>
+    body {
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    button {
+        display: inline-block;
+        margin: 10px;
+        padding: 15px 20px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+</style>
+<body>
+
+    <h1>NVS-YUVA</h1>
+
+    <button onclick="redirectToPage('Attendance-List.html')">Attendance-List</button>
+    <button onclick="redirectToPage('Save-Mandal.html')">Save-Mandal</button>
+    <button onclick="redirectToPage('Attendance.html')">Take Attendance</button>
+    <button onclick="redirectToPage('Save-Yuvak.html')">Save-Yuvak</button>
+    <button onclick="redirectToPage('User-List.html')">Yuvak List</button>
+    <button onclick="redirectToPage('Mandal-List.html')">Mandal List</button>
+
+    <script>
+        function redirectToPage(page) {
+            window.location.href = page;
+        }
+    </script>
+
+</body>
+</html>

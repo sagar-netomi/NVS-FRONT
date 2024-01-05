@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+    <!-- Include the html5-qrcode library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"> </script>
+
+
+</head>
+
+<body>
+  <div id="reader" width="600px"></div>
+</body>
+
+
+<script>
+      
+  window.onload = (event) => {
+  console.log("page is fully loaded");
+
+
+  const html5QrCode = new Html5Qrcode("reader");
+    const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+      html5QrCode.stop().then((ignore) => {
+          // QR Code scanning is stopped.
+          alert('scanning stopped')
+        }).catch((err) => {
+          alert('camera stopping falied')
+          // Stop failed, handle it.
+        });
+        sendToAPI(decodedText)  
+
+        /* handle success */
+    };
+
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
+
+  }
+
+    function getCurrentTimeStamp() {
+      // Get the current date and time
+      const currentDate = new Date();
+
+      // Format the date and time as per your requirement
+      const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear()} ${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}:${currentDate.getSeconds().toString().padStart(2, '0')}`;
+
+      return formattedDate;
+    }
+
+  function sendToAPI(uuid) {
+                const apiUrl = `${config.apiHost}/attendance`;
+
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      userUUID: uuid,
+                      attendanceDate:getCurrentTimeStamp()
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('API Response:', data);
+                    alert('attendance taken')
+                })
+                .catch(error => {
+                    console.error('Error sending data to API:', error);
+                });
+            }
+
+</script>
+
+</html>
